@@ -1,0 +1,20 @@
+{
+  "type": "node",
+  "name": "Debug webpack build",
+  "program": "${workspaceFolder}/webpack.config.js",
+  "outFiles": [
+    "${workspaceFolder}/dist/bundle.js"
+  ],
+  "cwd": "./dist",
+  "args": [
+    "--mode=development"
+  ],
+  "runtimeExecutable": "npm",
+  "runtimeArgs": [
+    "run",
+    "debug"
+  ],
+  "sourceMaps": true,
+  "autoAttachChildProcesses": true,
+  "preLaunchTask": "build"
+}

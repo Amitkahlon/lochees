@@ -1,13 +1,13 @@
-const FileReader = require("../fileReader");
+const FileReader = require("../dist/FileReader").default;
 const chai = require("chai");
 
 const expect = chai.expect;
 
 describe('fileReader tests', () => {
-  let testReader = new FileReader("C:/Users/AmitKahlon/Desktop/Workplace/project-status/test/example1.ts");
+  let testReader = new FileReader("C:/Users/AmitKahlon/Desktop/Workplace/project-status/test/examples/example1.ts");
 
   beforeEach(() => {
-    testReader = new FileReader("C:/Users/AmitKahlon/Desktop/Workplace/project-status/test/example1.ts")
+    testReader = new FileReader("C:/Users/AmitKahlon/Desktop/Workplace/project-status/test/examples/example1.ts")
   });
 
     it('get first raw line', () => {
@@ -32,7 +32,7 @@ describe('fileReader tests', () => {
   it('should go back', () => {
     testReader.nextLine()
     testReader.nextLine()
-    testReader.previous()
+    testReader.prevLine()
 
     expect(testReader.currentLineIndex).eq(1);
   });
@@ -49,7 +49,7 @@ describe('fileReader tests', () => {
 
   it('should not go less than zero', () => {
     for (let i = 0; i < 5; i++) {
-      testReader.previous()
+      testReader.prevLine()
     }
 
     expect(testReader.currentLineIndex).eq(0);

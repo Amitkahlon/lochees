@@ -1,4 +1,4 @@
-class StrUtils { 
+export default class StrUtils { 
   splitToWords(line) {
     return line?.split(/\s+/);
   };
@@ -18,4 +18,3 @@ class StrUtils {
   };
 }
 
-module.exports = StrUtils;

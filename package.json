@@ -4,12 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "webpack --config webpack.config.js --mode development",
     "test": "mocha --reporter spec"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "awesome-typescript-loader": "^5.2.1",
     "chai": "^4.3.7",
-    "mocha": "^10.2.0"
+    "mocha": "^10.2.0",
+    "source-map-loader": "^4.0.1"
+  },
+  "devDependencies": {
+    "ts-loader": "^9.4.2",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   }
 }

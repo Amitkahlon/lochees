@@ -1,29 +1,32 @@
-const fs = require('fs');
-const path = require('path');
-const StrUtils = require('./StrUtils');
+// const fs = require('fs');
+// const path = require('path');
+// const StrUtils = require('./StrUtils');
 
+import * as fs from "fs";
+import * as path from "path";
+import StrUtils from "./StrUtils";
 
-class FileReader {
-  currentLineIndex = 0;
-  currentWordIndex = 0;
-  rawContent;
-  lines;
+export default class FileReader {
+  public currentLineIndex: number = 0;
+  currentWordIndex: number = 0;
+  private rawContent: string;
+  private lines: string[];
+  private filePath: string;
+  private strUtils = new StrUtils();
 
-  strUtils = new StrUtils();
-
-  constructor(filePath) {
+  constructor(filePath: string) {
     this.filePath = filePath;
     const fileData = fs.readFileSync(filePath);
     this.rawContent = fileData.toString();
     this.setLines();
   }
 
-  setLines() {
+  private setLines() {
     this.lines = this.strUtils.splitToLines(this.rawContent);
   }
 
 
-  previous() {
+  prevLine() {
     if(this.currentLineIndex > 0){
       this.currentLineIndex--;
     }
@@ -53,7 +56,7 @@ class FileReader {
     }
   }
 
-  previousWord() {
+  prevWord() {
     if(this.currentWordIndex > 0) {
       this.currentWordIndex--;
     }
@@ -62,6 +65,3 @@ class FileReader {
 
 
 }
-
-
-module.exports = FileReader;
