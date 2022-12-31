@@ -1,4 +1,3 @@
-// const StrUtils = require("../StrUtils");
 import StrUtils from "./StrUtils";
 
 const strUtils = new StrUtils();

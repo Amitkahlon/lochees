@@ -8,7 +8,11 @@ import * as path from "path";
 import StrUtils from "./StrUtils";
 import FileReader from "./FileReader"
 import { isCommentLine } from "./logic";
+import { AnnotationsManager, metaDataType } from "./annotations";
+
 const strUtils = new StrUtils();
+const annotationsManager = new AnnotationsManager({annotations: [{name: "-skip", settings: {acceptStatus: true}, metaData: [{name: "issue",settings: {type: metaDataType.oneLine}}]}]})
+
 
 const statusFlags = {
   full: false,
@@ -38,11 +42,19 @@ while (stack.length > 0) {
       console.log(`File: ${filePath}`);
       const fileReader = new FileReader(filePath);
 
-      if (!isCommentLine(fileReader.currentLineRaw)) {
-        continue;
-      }
+      while(!fileReader.isEndOfFile()) {
+        
+        if (!isCommentLine(fileReader.currentLineRaw)) {
+          continue;
+        }
 
-      
+
+
+
+        
+
+        fileReader.nextLine();
+      }
 
       
     }

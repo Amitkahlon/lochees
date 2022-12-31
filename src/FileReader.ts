@@ -13,6 +13,7 @@ export default class FileReader {
   private lines: string[];
   private filePath: string;
   private strUtils = new StrUtils();
+  private fileLineLength: number;
 
   constructor(filePath: string) {
     this.filePath = filePath;
@@ -23,18 +24,24 @@ export default class FileReader {
 
   private setLines() {
     this.lines = this.strUtils.splitToLines(this.rawContent);
+    this.fileLineLength = this.lines.length;
   }
 
 
   prevLine() {
-    if(this.currentLineIndex > 0){
+    if(this.isEndOfFile()) {
+      this.currentLineIndex = this.fileLineLength - 1;
+    }
+    else if(this.currentLineIndex > 0){
       this.currentLineIndex--;
     }
   }
 
   nextLine() {
-    if(this.currentLineIndex < this.lines.length - 1) {
+    if(this.currentLineIndex < this.fileLineLength - 1) {
       this.currentLineIndex++;
+    } else {
+      this.currentLineIndex = -1;
     }
   }
 
@@ -62,6 +69,8 @@ export default class FileReader {
     }
   }
 
-
+  isEndOfFile() {
+    return this.currentLineIndex === -1;
+  }
 
 }
