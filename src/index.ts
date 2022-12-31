@@ -7,7 +7,7 @@ import * as fs from "fs";
 import * as path from "path";
 import StrUtils from "./StrUtils";
 import FileReader from "./FileReader"
-import { getAnnotation, getMetaData, isCommentLine, isEndOfMultiLine } from "./logic";
+import { attemptToGetContext, getAnnotation, getMetaData, isCommentLine, isEndOfMultiLine } from "./logic";
 import { AnnotationsManager, IMetaData, metaDataType } from "./annotations";
 
 const strUtils = new StrUtils();
@@ -17,7 +17,15 @@ const skipMetaDataNotes: IMetaData = {key: "notes:", settings: {type: metaDataTy
 const skipMetaDataTodo: IMetaData = {key: "todo:", settings: {type: metaDataType.multiLine, maxLines: 2} };
 
 
-const manager = new AnnotationsManager({annotations: [{key: "-skip", printMessage: "Total skipped Tests:",settings: {acceptStatus: true, caseSensitive: false}, metaData: [skipMetaDataIssue, skipMetaDataNotes, skipMetaDataTodo]}]})
+export type contextType = "it" | "describe" | "no_context";
+interface IContext {
+  name?: string;
+  file?: string;
+  lineIndex?: number;
+  type?: contextType
+} 
+
+const manager = new AnnotationsManager({annotations: [{key: "-skip", printMessage: "Total skipped Tests:",settings: {acceptStatus: true, caseSensitive: false}, metaData: [skipMetaDataIssue, skipMetaDataNotes, skipMetaDataTodo]}], defaults: {maxLines: 3}})
 const flagsMap = {}
 
 const statusFlags = {
@@ -48,6 +56,7 @@ while (stack.length > 0) {
 
       while(!fileReader.isEndOfFile()) {
         
+        console.log(fileReader.currentLineRaw);
         if (!isCommentLine(fileReader.currentLineRaw)) {
           fileReader.nextLine();
           continue;
@@ -63,17 +72,24 @@ while (stack.length > 0) {
         if(statusFlags.full){
           let report : Partial<{
             key: string,
-            notes: string,
-            issueLink: string,
             status: string,
-            unknownStatus: boolean,
-            todo: string,
-            metaData: object
+            metaData: object,
+            context: IContext
+            
           }> = {}
-
           report.metaData = {};
+          report.context = {};
+
 
           report.key = annotation.key;
+
+          //set context
+          report.context.file = filePath;
+          report.context.lineIndex = fileReader.currentLineIndex;
+          const {name, type} = attemptToGetContext(fileReader.lines.slice(fileReader.currentLineIndex + 1));
+          report.context.name = name;
+          report.context.type = type;
+
 
           if(annotation.settings.acceptStatus) {
             report.status = fileReader.getRestOfLine(fileReader.currentWordIndex + 1);

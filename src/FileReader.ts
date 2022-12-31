@@ -10,7 +10,11 @@ export default class FileReader {
   public currentLineIndex: number = 0;
   currentWordIndex: number = 0;
   private rawContent: string;
-  private lines: string[];
+  private _lines: string[];
+  public get lines(): string[] {
+    return this._lines;
+  }
+
   private filePath: string;
   private strUtils = new StrUtils();
   private fileLineLength: number;
@@ -23,8 +27,8 @@ export default class FileReader {
   }
 
   private setLines() {
-    this.lines = this.strUtils.splitToLines(this.rawContent);
-    this.fileLineLength = this.lines.length;
+    this._lines = this.strUtils.splitToLines(this.rawContent);
+    this.fileLineLength = this._lines.length;
   }
 
   public goToWord(index: number) {
@@ -58,11 +62,11 @@ export default class FileReader {
   }
 
   get currentLine(): string[] {
-    return this.strUtils.splitToWords(this.lines[this.currentLineIndex].trim());
+    return this.strUtils.splitToWords(this._lines[this.currentLineIndex].trim());
   }
 
   get currentLineRaw() {
-    return this.lines[this.currentLineIndex];
+    return this._lines[this.currentLineIndex];
   }
 
   get currentWord() {

@@ -3,6 +3,9 @@ export class AnnotationsManager {
 
   constructor(config: IAnnotationsManagerConfig) {
     this.config = config;
+    if(!this.config.defaults){
+      this.config.defaults = {maxLines: 3}
+    }
   }
 
   get annotations() {
@@ -28,14 +31,11 @@ export class AnnotationsManager {
       return annotation.metaData.find(m => m.key === key);
     }
 
-
-
-  
-    
 }
 
 export interface IAnnotationsManagerConfig {
-  annotations: IAnnotationConfig[]
+  annotations: IAnnotationConfig[];
+  defaults: Partial <{maxLines: number}>;
 }
 
 export interface ICaseSensitive {
@@ -68,3 +68,4 @@ export enum metaDataType {
   multiLine,
   oneLine
 }
+

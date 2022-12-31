@@ -1,3 +1,4 @@
+import { contextType } from ".";
 import { AnnotationsManager, IAnnotationConfig, IMetaData } from "./annotations";
 import FileReader from "./FileReader"
 import StrUtils from "./StrUtils";
@@ -5,7 +6,7 @@ import StrUtils from "./StrUtils";
 const strUtils = new StrUtils();
 
 export const isCommentLine = (line) => {
-  return line.startsWith('//');
+  return line.trim().startsWith('//');
 };
 
 export const getFirstWord = (words) => {
@@ -62,3 +63,51 @@ export const isEndOfMultiLine = (fileReader: FileReader, annotation: IAnnotation
   return !isComment || isMetaData || isAnnotation || multiLineIndex >= maxLines
   
 }
+
+export const getDescribeName = (line: string) => {
+const regex = /describe\([`'"](.+)[`'"]/;
+const match = line.match(regex);
+
+if (match) {
+  const name = match[1];  // the first capture group
+  return name // prints "random name"
+}
+}
+
+
+export const getItName = (line: string) => {
+const regex = /it\([`'"](.+)[`'"]/;
+const match = line.match(regex);
+
+if (match) {
+  const name = match[1];  // the first capture group
+  return name;
+}
+}
+
+export const isDescribeLine = (line) => {
+  const regex = /describe\([`'"](.+)[`'"]/;
+  return regex.test(line);
+}
+
+export const isItLine = (line) => {
+  const regex = /it\([`'"](.+)[`'"]/;
+  return regex.test(line);
+}
+
+export const attemptToGetContext = (lines: string[]): {name: string, type: contextType} => {
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+
+    if(isDescribeLine(l)){
+      return {name: getDescribeName(l), type: "describe"};
+    }
+
+    else if(isItLine(l)) {
+      return {name: getItName(l), type: "it"};
+    }
+  }
+
+  return {name: null, type: "no_context"};
+}
+
