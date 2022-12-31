@@ -7,29 +7,33 @@ import * as fs from "fs";
 import * as path from "path";
 import StrUtils from "./StrUtils";
 import FileReader from "./FileReader"
-import { isCommentLine } from "./logic";
-import { AnnotationsManager, metaDataType } from "./annotations";
+import { getAnnotation, getMetaData, isCommentLine, isEndOfMultiLine } from "./logic";
+import { AnnotationsManager, IMetaData, metaDataType } from "./annotations";
 
 const strUtils = new StrUtils();
-const annotationsManager = new AnnotationsManager({annotations: [{name: "-skip", settings: {acceptStatus: true}, metaData: [{name: "issue",settings: {type: metaDataType.oneLine}}]}]})
 
+const skipMetaDataIssue: IMetaData = {key: "issue:", settings: {type: metaDataType.oneLine} };
+const skipMetaDataNotes: IMetaData = {key: "notes:", settings: {type: metaDataType.multiLine, maxLines: 3} };
+const skipMetaDataTodo: IMetaData = {key: "todo:", settings: {type: metaDataType.multiLine, maxLines: 2} };
+
+
+const manager = new AnnotationsManager({annotations: [{key: "-skip", printMessage: "Total skipped Tests:",settings: {acceptStatus: true, caseSensitive: false}, metaData: [skipMetaDataIssue, skipMetaDataNotes, skipMetaDataTodo]}]})
+const flagsMap = {}
 
 const statusFlags = {
   full: false,
 };
 
 statusFlags.full = process.argv.includes('-f') || process.argv.includes('--full');
-statusFlags.full= false
+statusFlags.full= true
 
 
-const stack = ['./test/examples'];
+const stack = ['./test/examples/a'];
 
 
 while (stack.length > 0) {
   const currentDir = stack.pop();
   console.log(`Reading folder: ${currentDir}`);
-
-  var absolutePath = path.resolve(currentDir);
 
   const files = fs.readdirSync(currentDir);
   for (const file of files) {
@@ -45,10 +49,87 @@ while (stack.length > 0) {
       while(!fileReader.isEndOfFile()) {
         
         if (!isCommentLine(fileReader.currentLineRaw)) {
+          fileReader.nextLine();
           continue;
         }
 
+        const annotation = getAnnotation(fileReader, manager)
 
+        if(!annotation) {
+          fileReader.nextLine();
+          continue;
+        }
+
+        if(statusFlags.full){
+          let report : Partial<{
+            key: string,
+            notes: string,
+            issueLink: string,
+            status: string,
+            unknownStatus: boolean,
+            todo: string,
+            metaData: object
+          }> = {}
+
+          report.metaData = {};
+
+          report.key = annotation.key;
+
+          if(annotation.settings.acceptStatus) {
+            report.status = fileReader.getRestOfLine(fileReader.currentWordIndex + 1);
+          }
+
+          if(annotation.metaData?.length) {
+            //find meta data
+            let prevIndex = fileReader.currentLineIndex;
+            let multiLineFlag = false;
+            let currentMeta: IMetaData;
+            let multiLineCount: number;
+            fileReader.nextLine();
+
+            //stops when couldn't find a meta data or reached end of line
+            while(!fileReader.isEndOfFile()) {
+              if(!multiLineFlag) {
+                currentMeta = getMetaData(fileReader, annotation);
+
+                if(currentMeta) {
+                  report.metaData[currentMeta.key] = fileReader.getRestOfLine(fileReader.currentWordIndex + 1);
+                } else {
+                  break;
+                }
+
+                if(currentMeta.settings.type === metaDataType.multiLine) {
+                  multiLineFlag = true;
+                  multiLineCount = 1
+                }
+
+               fileReader.nextLine();
+              } else {
+                let isEnd = isEndOfMultiLine(fileReader, annotation, manager, multiLineCount, currentMeta.settings.maxLines)
+
+                if(isEnd) {
+                  multiLineFlag = false;
+                  currentMeta = null;
+                  continue;
+                }
+                
+                report.metaData[currentMeta.key] += '\n' + fileReader.getRestOfLine(0)
+                
+                multiLineCount++;
+                fileReader.nextLine();
+              }
+            }
+          }
+
+          console.log(report);
+          
+        } else {
+          if (flagsMap[annotation.key] == null) {
+            flagsMap[annotation.key] = 1;
+          } else {
+            flagsMap[annotation.key]++;
+          }
+        }
 
 
         
@@ -62,3 +143,19 @@ while (stack.length > 0) {
   }
 
 }
+
+
+console.log('====== Results: ===== \n \n');
+
+if (statusFlags.full) {
+  console.log(flagsMap);
+
+
+
+} else {
+
+for (const annotation of manager.annotations) {
+  console.log(`${annotation.printMessage ? annotation.printMessage : annotation.key}: ${flagsMap[annotation.key]}`);
+  }
+}
+

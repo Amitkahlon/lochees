@@ -27,6 +27,14 @@ export default class FileReader {
     this.fileLineLength = this.lines.length;
   }
 
+  public goToWord(index: number) {
+    this.currentWordIndex = index;
+  }
+
+  public goToStart() {
+    this.goToWord(0);
+  }
+
 
   prevLine() {
     if(this.isEndOfFile()) {
@@ -35,6 +43,8 @@ export default class FileReader {
     else if(this.currentLineIndex > 0){
       this.currentLineIndex--;
     }
+
+    this.currentWordIndex = 0;
   }
 
   nextLine() {
@@ -43,9 +53,11 @@ export default class FileReader {
     } else {
       this.currentLineIndex = -1;
     }
+
+    this.currentWordIndex = 0;
   }
 
-  get currentLine() {
+  get currentLine(): string[] {
     return this.strUtils.splitToWords(this.lines[this.currentLineIndex].trim());
   }
 
@@ -71,6 +83,10 @@ export default class FileReader {
 
   isEndOfFile() {
     return this.currentLineIndex === -1;
+  }
+
+  getRestOfLine(from: number) {
+    return this.strUtils.trimCommentSign(this.currentLine.slice(from).join(' '));
   }
 
 }

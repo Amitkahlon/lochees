@@ -7,7 +7,7 @@ export default class StrUtils {
     return contents.split('\n');
   }
 
-  trimCommentSign = (word) => {
+  trimCommentSign = (word) : string => {
     for (let z = 0; z < word.length; z++) {
       if (word[z] === '/') {
         continue;
