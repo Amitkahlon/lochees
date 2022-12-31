@@ -7,19 +7,22 @@ const isCommentLine = (line) => {
 };
 
 const getFirstWord = (words) => {
+  if(!words) return null;
+
   let i = 0;
-  while(true) {
+  while(i < words.length) {
     const curr = trimCommentSign(words[i]);
 
     if(curr) return curr;
-
   }
-  
-  
 
+  return null;
 }
 
 
+
+
 module.exports = {
-  isCommentLine
+  isCommentLine,
+  getFirstWord
 }
