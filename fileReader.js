@@ -14,7 +14,7 @@ class FileReader {
   constructor(filePath) {
     this.filePath = filePath;
     const fileData = fs.readFileSync(filePath);
-    this.contents = fileData.toString();
+    this.rawContent = fileData.toString();
     this.setLines();
   }
 
@@ -30,13 +30,13 @@ class FileReader {
   }
 
   nextLine() {
-    if(this.currentLineIndex <= this.lines.length) {
+    if(this.currentLineIndex < this.lines.length - 1) {
       this.currentLineIndex++;
     }
   }
 
   get currentLine() {
-    return this.strUtils.splitToWords(this.lines[this.currentLineIndex]);
+    return this.strUtils.splitToWords(this.lines[this.currentLineIndex].trim());
   }
 
   get currentLineRaw() {
@@ -47,6 +47,21 @@ class FileReader {
     return this.currentLine[this.currentWordIndex];
   } 
 
+  nextWord() {
+    if(this.currentWordIndex < this.currentLine.length - 1) {
+      this.currentWordIndex++;
+    }
+  }
+
+  previousWord() {
+    if(this.currentWordIndex > 0) {
+      this.currentWordIndex--;
+    }
+  }
+
+
+
 }
 
 
+module.exports = FileReader;
