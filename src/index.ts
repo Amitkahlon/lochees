@@ -1,42 +1,59 @@
-// const fs = require('fs');
-// const path = require('path');
-// const FileReader = require('./fileReader');
-// const StrUtils = require("./StrUtils");
-
-import * as fs from "fs";
-import * as path from "path";
-import StrUtils from "./StrUtils";
-import FileReader from "./FileReader"
-import { attemptToGetContext, getAnnotation, getMetaData, isCommentLine, isEndOfMultiLine } from "./logic";
-import { AnnotationsManager, IMetaData, metaDataType } from "./annotations";
+import * as fs from 'fs';
+import * as path from 'path';
+import StrUtils from './StrUtils';
+import FileReader from './FileReader';
+import { attemptToGetContext, getAnnotation, getMetaData, isCommentLine, isEndOfMultiLine } from './logic';
+import { AnnotationsManager, IMetaData, metaDataType } from './annotations';
 
 const strUtils = new StrUtils();
 
-const skipMetaDataIssue: IMetaData = {key: "issue:", settings: {type: metaDataType.oneLine} };
-const skipMetaDataNotes: IMetaData = {key: "notes:", settings: {type: metaDataType.multiLine, maxLines: 3} };
-const skipMetaDataTodo: IMetaData = {key: "todo:", settings: {type: metaDataType.multiLine, maxLines: 2} };
+const skipMetaDataIssue: IMetaData = { key: 'issue:', settings: { type: metaDataType.oneLine } };
+const skipMetaDataNotes: IMetaData = { key: 'notes:', settings: { type: metaDataType.multiLine, maxLines: 3 } };
+const skipMetaDataTodo: IMetaData = { key: 'todo:', settings: { type: metaDataType.multiLine, maxLines: 2 } };
 
-
-export type contextType = "it" | "describe" | "commented_function_call" | "function_call" | "no_context";
+export type contextType =
+  | 'it'
+  | 'describe'
+  | 'skipped_it'
+  | 'skipped_describe'
+  | 'commented_function_call'
+  | 'function_call'
+  | 'no_context';
 interface IContext {
   name?: string;
   lineIndex?: number;
-  type?: contextType
-} 
+  type?: contextType;
+}
 
-const manager = new AnnotationsManager({annotations: [{key: "-skip", printMessage: "Total skipped Tests:",settings: {acceptStatus: true, caseSensitive: false}, metaData: [skipMetaDataIssue, skipMetaDataNotes, skipMetaDataTodo]}], defaults: {maxLines: 3}})
-const flagsMap = {}
+const manager = new AnnotationsManager({
+  annotations: [
+    {
+      key: '-skip',
+      printMessage: 'Total skipped Tests:',
+      settings: { acceptStatus: true, caseSensitive: false },
+      metaData: [skipMetaDataIssue, skipMetaDataNotes, skipMetaDataTodo],
+    },
+    {
+      key: "-plaster",
+      settings: { acceptStatus: false, caseSensitive: false },
+      metaData: [skipMetaDataNotes], 
+      printMessage: "Total Plasters: "
+    }
+  ],
+  defaults: { maxLines: 3 },
+});
+const flagsMap = {};
 
 const statusFlags = {
   full: false,
 };
 
 statusFlags.full = process.argv.includes('-f') || process.argv.includes('--full');
-statusFlags.full= true
-
+statusFlags.full = true;
 
 const stack = ['./test/examples/a'];
 
+const reports: any[] = [];
 
 while (stack.length > 0) {
   const currentDir = stack.pop();
@@ -53,49 +70,42 @@ while (stack.length > 0) {
       console.log(`File: ${filePath}`);
       const fileReader = new FileReader(filePath);
 
-      while(!fileReader.isEndOfFile()) {
-        
+      while (!fileReader.isEndOfFile()) {
         console.log(fileReader.currentLineRaw);
         if (!isCommentLine(fileReader.currentLineRaw)) {
           fileReader.nextLine();
           continue;
         }
 
-        const annotation = getAnnotation(fileReader, manager)
+        const annotation = getAnnotation(fileReader, manager);
 
-        if(!annotation) {
+        if (!annotation) {
           fileReader.nextLine();
           continue;
         }
 
-        if(statusFlags.full){
-          let report : Partial<{
-            key: string,
-            status: string,
-            metaData: object,
-            line: number,
-            context: IContext
-            file: string
-            
-          }> = {}
+        if (statusFlags.full) {
+          let report: Partial<{
+            key: string;
+            status: string;
+            metaData: object;
+            line: number;
+            context: IContext;
+            file: string;
+          }> = {};
           report.metaData = {};
           report.context = {};
-
 
           report.key = annotation.key;
 
           report.file = filePath;
           report.line = fileReader.currentLineIndex;
 
-         
-
-
-
-          if(annotation.settings.acceptStatus) {
+          if (annotation.settings.acceptStatus) {
             report.status = fileReader.getRestOfLine(fileReader.currentWordIndex + 1);
           }
 
-          if(annotation.metaData?.length) {
+          if (annotation.metaData?.length) {
             //find meta data
             let prevIndex = fileReader.currentLineIndex;
             let multiLineFlag = false;
@@ -104,47 +114,51 @@ while (stack.length > 0) {
             fileReader.nextLine();
 
             //stops when couldn't find a meta data or reached end of line
-            while(!fileReader.isEndOfFile()) {
-              if(!multiLineFlag) {
+            while (!fileReader.isEndOfFile()) {
+              if (!multiLineFlag) {
                 currentMeta = getMetaData(fileReader, annotation);
 
-                if(currentMeta) {
+                if (currentMeta) {
                   report.metaData[currentMeta.key] = fileReader.getRestOfLine(fileReader.currentWordIndex + 1);
                 } else {
+                  fileReader.prevLine();
                   break;
                 }
 
-                if(currentMeta.settings.type === metaDataType.multiLine) {
+                if (currentMeta.settings.type === metaDataType.multiLine) {
                   multiLineFlag = true;
-                  multiLineCount = 1
+                  multiLineCount = 1;
                 }
 
-               fileReader.nextLine();
+                fileReader.nextLine();
               } else {
-                let isEnd = isEndOfMultiLine(fileReader, annotation, manager, multiLineCount, currentMeta.settings.maxLines)
+                const isEnd = isEndOfMultiLine(fileReader, annotation, manager, multiLineCount, currentMeta.settings.maxLines);
 
-                if(isEnd) {
+                if (isEnd) {
                   multiLineFlag = false;
                   currentMeta = null;
                   continue;
                 }
-                
-                report.metaData[currentMeta.key] += '\n' + fileReader.getRestOfLine(0)
-                
+
+                report.metaData[currentMeta.key] += '\n' + fileReader.getRestOfLine(0);
+
                 multiLineCount++;
                 fileReader.nextLine();
               }
             }
           }
 
-           //set context
-           const {name, type, foundIndex} = attemptToGetContext(fileReader.lines.slice(fileReader.currentLineIndex + 1));
-           report.context.name = name;
-           report.context.type = type;
-           report.context.lineIndex = foundIndex + fileReader.currentLineIndex + 1;
+
+
+          //set context
+          const { name, type, foundIndex } = attemptToGetContext(fileReader.lines.slice(fileReader.currentLineIndex));
+          report.context.name = name;
+          report.context.type = type;
+          report.context.lineIndex = foundIndex + fileReader.currentLineIndex;
 
           console.log(report);
-          
+
+          reports.push(report);
         } else {
           if (flagsMap[annotation.key] == null) {
             flagsMap[annotation.key] = 1;
@@ -153,31 +167,18 @@ while (stack.length > 0) {
           }
         }
 
-
-        
-
         fileReader.nextLine();
       }
-
-      
     }
-
   }
-
 }
-
 
 console.log('====== Results: ===== \n \n');
 
 if (statusFlags.full) {
   console.log(flagsMap);
-
-
-
 } else {
-
-for (const annotation of manager.annotations) {
-  console.log(`${annotation.printMessage ? annotation.printMessage : annotation.key}: ${flagsMap[annotation.key]}`);
+  for (const annotation of manager.annotations) {
+    console.log(`${annotation.printMessage ? annotation.printMessage : annotation.key}: ${flagsMap[annotation.key]}`);
   }
 }
-

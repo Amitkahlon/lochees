@@ -5,17 +5,32 @@
 // line 3.
 //todo: todo 1
 //2.todo 2
+// -plaster
+// notes: hello
 
-describe('fucking tests group', () => {
+describe.skip('text', () => {
   // -skip hello1
 // issue: "www.google.com"
-  it('fucking test 1', () => {
+
+  it('it 1', () => {
     
   });
 
-    // -skip hello2
+// -skip hello2
 // issue: "www.google.com"
-  it('fucking test 2', () => {
+
+  it('it 2', () => {
     
   });
 });
+
+
+//-skip
+//notes: notes for test1
+
+//test1()
+
+
+
+
+// randomCall()
