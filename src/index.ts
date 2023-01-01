@@ -6,42 +6,15 @@ import { ConfigManager } from './configManager';
 import { IReport, IMetaDataConfig, metaDataType } from './model/interfaces';
 import { handler } from './handler';
 import { overrideLog } from './logHelper';
+import { EnvManger } from './env';
+import { ReportManager } from './reportManager';
 
 const manager = new ConfigManager(handler);
+const envManager = new EnvManger(process.argv);
 
-const reportManager: {
-  flagsMap: object;
-  fullReports: Partial<IReport>[];
-} = {
-  flagsMap: {},
-  fullReports: [],
-};
+envManager.flags.full = true;
 
-const runFlags: {
-  full: boolean;
-  output: 'console' | string;
-} = {
-  full: false,
-  output: 'console',
-};
-
-runFlags.full = process.argv.includes('-f') || process.argv.includes('--full');
-for (let i = 0; i < process.argv.length; i++) {
-  const arg = process.argv[i];
-
-  if (arg.includes('-o') || arg.includes('--output')) {
-    const output = process.argv[i + 1];
-    if (!output) {
-      console.error('output was not provider, please provide a file path');
-      throw new Error('output was not provider, please provide a file path');
-    }
-    runFlags.output = output;
-    break;
-  }
-}
-
-runFlags.full = true;
-runFlags.output = 'console';
+const reportManager = new ReportManager(envManager.flags.full);
 
 const stack = ['./test/examples/a'];
 
@@ -76,7 +49,7 @@ while (stack.length > 0) {
           continue;
         }
 
-        if (runFlags.full) {
+        if (envManager.flags.full) {
           let report: Partial<IReport> = {};
           report.metaData = {};
           report.context = {};
@@ -140,10 +113,11 @@ while (stack.length > 0) {
 
           reports.push(report);
         } else {
-          if (reportManager.flagsMap[annotation.key] == null) {
-            reportManager.flagsMap[annotation.key] = 1;
+          const { simpleReport } = reportManager;
+          if (simpleReport[annotation.key] == null) {
+            simpleReport[annotation.key] = 1;
           } else {
-            reportManager.flagsMap[annotation.key]++;
+            simpleReport[annotation.key]++;
           }
         }
 
@@ -153,14 +127,13 @@ while (stack.length > 0) {
   }
 }
 
-
-if(runFlags.output !== "console") {
-  overrideLog()
+if (envManager.flags.output !== 'console') {
+  overrideLog();
 }
 
 console.log('===================== Report ===================== \n');
 console.log(`Date: ${new Date(Date.now()).toString()}\n`);
-if (runFlags.full) {
+if (envManager.flags.full) {
   reports.forEach((r, i) => {
     console.log(`Flag number: ${i}`);
     const annotation = manager.getAnnotation(r.key);
