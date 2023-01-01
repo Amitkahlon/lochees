@@ -11,8 +11,8 @@ import { ReportManager } from './reportManager';
 
 const manager = new ConfigManager(handler);
 const envManager = new EnvManger(process.argv);
-
 envManager.flags.full = true;
+envManager.flags.output = '/debug.log';
 
 const reportManager = new ReportManager(envManager.flags.full);
 
@@ -144,7 +144,7 @@ if (envManager.flags.full) {
   });
 } else {
   for (const annotation of manager.annotations) {
-    console.log(`${annotation.printMessage ? annotation.printMessage : annotation.key}: ${reportManager.flagsMap[annotation.key]}`);
+    console.log(`${annotation.printMessage ? annotation.printMessage : annotation.key}: ${reportManager.simpleReport[annotation.key]}`);
   }
 }
 

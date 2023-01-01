@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as util from 'util';
 
-export const overrideLog = (filePath: string = './debug.log') => {
+export const overrideLog = (filePath: string = '/debug.log') => {
   var log_file = fs.createWriteStream(__dirname + filePath, { flags: 'w' });
   var log_stdout = process.stdout;
 
