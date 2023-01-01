@@ -95,19 +95,48 @@ export const isItLine = (line) => {
   return regex.test(line);
 }
 
-export const attemptToGetContext = (lines: string[]): {name: string, type: contextType} => {
+export const attemptToGetContext = (lines: string[]): {name: string, type: contextType, foundIndex: number} => {
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
 
     if(isDescribeLine(l)){
-      return {name: getDescribeName(l), type: "describe"};
+      return {name: getDescribeName(l), type: "describe", foundIndex: i};
     }
 
     else if(isItLine(l)) {
-      return {name: getItName(l), type: "it"};
+      return {name: getItName(l), type: "it", foundIndex: i};
+    }
+
+    else if(isFunctionCall(l)) {
+      const {name, params} = getFunctionCallName(l); //TODO: use the params
+      if(isCommentLine(l)){
+        return {name, type: "commented_function_call", foundIndex: i};
+      }else {
+        return {foundIndex: i, name, type: "function_call"}
+      }
     }
   }
 
-  return {name: null, type: "no_context"};
+  return {name: null, type: "no_context", foundIndex: null};
 }
 
+export const isFunctionCall = (line: string) => {
+  const regex = /[^\s]+(\(.+\))/;
+  return regex.test(line);
+}
+
+export const getFunctionCallName = (l):  {name: string, params: string} => {
+  const regex = /([^\s]+)\((.+)\)/;
+  const match = l.match(regex);
+  
+  if (match) {
+    const name = match[1];  // the first capture group
+    const params = match[2];  // the second capture group
+    return {name,  params}
+  }
+}
+
+//-skip
+//notes: bla bla
+
+//commonTests();

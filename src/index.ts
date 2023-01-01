@@ -17,10 +17,9 @@ const skipMetaDataNotes: IMetaData = {key: "notes:", settings: {type: metaDataTy
 const skipMetaDataTodo: IMetaData = {key: "todo:", settings: {type: metaDataType.multiLine, maxLines: 2} };
 
 
-export type contextType = "it" | "describe" | "no_context";
+export type contextType = "it" | "describe" | "commented_function_call" | "function_call" | "no_context";
 interface IContext {
   name?: string;
-  file?: string;
   lineIndex?: number;
   type?: contextType
 } 
@@ -74,7 +73,9 @@ while (stack.length > 0) {
             key: string,
             status: string,
             metaData: object,
+            line: number,
             context: IContext
+            file: string
             
           }> = {}
           report.metaData = {};
@@ -83,12 +84,11 @@ while (stack.length > 0) {
 
           report.key = annotation.key;
 
-          //set context
-          report.context.file = filePath;
-          report.context.lineIndex = fileReader.currentLineIndex;
-          const {name, type} = attemptToGetContext(fileReader.lines.slice(fileReader.currentLineIndex + 1));
-          report.context.name = name;
-          report.context.type = type;
+          report.file = filePath;
+          report.line = fileReader.currentLineIndex;
+
+         
+
 
 
           if(annotation.settings.acceptStatus) {
@@ -136,6 +136,12 @@ while (stack.length > 0) {
               }
             }
           }
+
+           //set context
+           const {name, type, foundIndex} = attemptToGetContext(fileReader.lines.slice(fileReader.currentLineIndex + 1));
+           report.context.name = name;
+           report.context.type = type;
+           report.context.lineIndex = foundIndex + fileReader.currentLineIndex + 1;
 
           console.log(report);
           
