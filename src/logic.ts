@@ -1,6 +1,6 @@
-import { contextType } from '.';
-import { AnnotationsManager, IAnnotationConfig, IMetaData } from './annotations';
+import { ConfigManager } from './configManager';
 import FileReader from './FileReader';
+import { IAnnotationConfig, IMetaDataConfig, contextType } from './model/interfaces';
 import StrUtils from './StrUtils';
 
 const strUtils = new StrUtils();
@@ -25,7 +25,7 @@ export const getFirstWord = (words) => {
 /**
  * Checks for a flag in a sentence, returns null if not found
  */
-export const getAnnotation = (fileReader: FileReader, manager: AnnotationsManager) => {
+export const getAnnotation = (fileReader: FileReader, manager: ConfigManager) => {
   // Problem: "//-skip" or "////-skip" or "// -skip"
   // Solution: Find the last '/' from the start.
   //Trim the comments from the first word.
@@ -39,7 +39,7 @@ export const getAnnotation = (fileReader: FileReader, manager: AnnotationsManage
   return null;
 };
 
-export const getMetaData = (fileReader: FileReader, annotation: IAnnotationConfig): IMetaData => {
+export const getMetaData = (fileReader: FileReader, annotation: IAnnotationConfig): IMetaDataConfig => {
   const firstWord = strUtils.trimCommentSign(fileReader.currentWord);
   const first = annotation.metaData.find((m) => m.key === firstWord);
   if (first) return first;
@@ -54,7 +54,7 @@ export const getMetaData = (fileReader: FileReader, annotation: IAnnotationConfi
 export const isEndOfMultiLine = (
   fileReader: FileReader,
   annotation: IAnnotationConfig,
-  manager: AnnotationsManager,
+  manager: ConfigManager,
   multiLineIndex: number,
   maxLines: number
 ) => {
@@ -107,7 +107,7 @@ export const attemptToGetContext = (lines: string[]): { name: string; type: cont
     if (strUtils.isWhiteSpace(l)) {
       whiteSpaceCount++;
 
-      if(whiteSpaceCount == 2){
+      if (whiteSpaceCount == 2) {
         break;
       }
     }

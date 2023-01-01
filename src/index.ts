@@ -1,47 +1,84 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as util from 'util';
+
 import StrUtils from './StrUtils';
 import FileReader from './FileReader';
 import { attemptToGetContext, getAnnotation, getMetaData, isCommentLine, isEndOfMultiLine } from './logic';
-import { AnnotationsManager, IMetaData, metaDataType } from './annotations';
+import { ConfigManager } from './configManager';
+import { DEFAULT_META_DATA } from './model/defaultSettings';
+import { IReport, IMetaDataConfig, metaDataType } from './model/interfaces';
 
 const strUtils = new StrUtils();
 
-const skipMetaDataIssue: IMetaData = { key: 'issue:', settings: { type: metaDataType.oneLine } };
-const skipMetaDataNotes: IMetaData = { key: 'notes:', settings: { type: metaDataType.multiLine, maxLines: 3 } };
-const skipMetaDataTodo: IMetaData = { key: 'todo:', settings: { type: metaDataType.multiLine, maxLines: 2 } };
+const manager = new ConfigManager((b) => {
+  b.addAnnotation({
+    key: '-skip',
+    printMessage: ({ metaData, status, file, context, key, line }) => {
+      let sb = `File: ${file} line: ${line}\n` + `Key: SKIP\n` + `Status: ${status}\n`;
 
-export type contextType =
-  | 'it'
-  | 'describe'
-  | 'skipped_it'
-  | 'skipped_describe'
-  | 'commented_function_call'
-  | 'function_call'
-  | 'no_context';
-interface IContext {
-  name?: string;
-  lineIndex?: number;
-  type?: contextType;
-}
+      const { lineIndex, name, type } = context;
+      if (type !== 'no_context') {
+        sb += 'Context:\n' + `\tName: ${name}\n` + `\tType: "${type}"\n` + `\tline: ${lineIndex}\n`;
+      } else {
+        sb += `Context: No context found, make sure you placed your flag correctly\n`;
+      }
 
-const manager = new AnnotationsManager({
-  annotations: [
-    {
-      key: '-skip',
-      printMessage: 'Total skipped Tests:',
-      settings: { acceptStatus: true, caseSensitive: false },
-      metaData: [skipMetaDataIssue, skipMetaDataNotes, skipMetaDataTodo],
+      if (metaData) {
+        sb += `Meta Data:\n`;
+        for (const metaDataKey in metaData) {
+          const metaDataDetails = metaData[metaDataKey] as string;
+          sb += `\t${metaDataKey}:\n`;
+          sb +=
+            '\t\t' +
+            strUtils
+              .splitToLines(metaDataDetails)
+              .map((m) => m.trim())
+              .join('\n\t\t');
+          sb += '\n';
+        }
+      }
+
+      return sb;
     },
-    {
-      key: "-plaster",
-      settings: { acceptStatus: false, caseSensitive: false },
-      metaData: [skipMetaDataNotes], 
-      printMessage: "Total Plasters: "
-    }
-  ],
-  defaults: { maxLines: 3 },
+    settings: { acceptStatus: true, caseSensitive: false },
+  }).addMetaData(DEFAULT_META_DATA.issue);
+
+  b.addAnnotation({
+    key: '-plaster',
+    settings: { acceptStatus: false, caseSensitive: false },
+    printMessage: ({ context, file, key, line, metaData, status }) => {
+      let sb = `File: ${file} line: ${line}\n` + `Key: Plaster\n`;
+
+      const { lineIndex, name, type } = context;
+      if (type !== 'no_context') {
+        sb += 'Context:\n' + `\tName: ${name}\n` + `\tType: "${type}"\n` + `\tline: ${lineIndex}\n`;
+      } else {
+        sb += `Context: No context found, make sure you placed your flag correctly\n`;
+      }
+
+      if (metaData) {
+        sb += `Meta Data:\n`;
+        for (const metaDataKey in metaData) {
+          const metaDataDetails = metaData[metaDataKey] as string;
+          sb += `\t${metaDataKey}:\n`;
+          sb +=
+            '\t\t' +
+            strUtils
+              .splitToLines(metaDataDetails)
+              .map((m) => m.trim())
+              .join('\n\t\t');
+          sb += '\n';
+        }
+      }
+
+      return sb;
+    },
+  });
+
+  b.addGlobalMetaData(DEFAULT_META_DATA.notes).addGlobalMetaData(DEFAULT_META_DATA.todo);
 });
+
 const flagsMap = {};
 
 const statusFlags = {
@@ -53,7 +90,7 @@ statusFlags.full = true;
 
 const stack = ['./test/examples/a'];
 
-const reports: any[] = [];
+const reports: Partial<IReport>[] = [];
 
 while (stack.length > 0) {
   const currentDir = stack.pop();
@@ -85,14 +122,7 @@ while (stack.length > 0) {
         }
 
         if (statusFlags.full) {
-          let report: Partial<{
-            key: string;
-            status: string;
-            metaData: object;
-            line: number;
-            context: IContext;
-            file: string;
-          }> = {};
+          let report: Partial<IReport> = {};
           report.metaData = {};
           report.context = {};
 
@@ -106,10 +136,9 @@ while (stack.length > 0) {
           }
 
           if (annotation.metaData?.length) {
-            //find meta data
             let prevIndex = fileReader.currentLineIndex;
             let multiLineFlag = false;
-            let currentMeta: IMetaData;
+            let currentMeta: IMetaDataConfig;
             let multiLineCount: number;
             fileReader.nextLine();
 
@@ -148,15 +177,11 @@ while (stack.length > 0) {
             }
           }
 
-
-
           //set context
           const { name, type, foundIndex } = attemptToGetContext(fileReader.lines.slice(fileReader.currentLineIndex));
           report.context.name = name;
           report.context.type = type;
           report.context.lineIndex = foundIndex + fileReader.currentLineIndex;
-
-          console.log(report);
 
           reports.push(report);
         } else {
@@ -173,12 +198,30 @@ while (stack.length > 0) {
   }
 }
 
-console.log('====== Results: ===== \n \n');
+var log_file = fs.createWriteStream(__dirname + '/debug.log', { flags: 'w' });
+var log_stdout = process.stdout;
 
+console.log = function (d) {
+  //
+  log_file.write(util.format(d) + '\n');
+  log_stdout.write(util.format(d) + '\n');
+};
+
+console.log('===================== Report ===================== \n');
+console.log(`Date: ${new Date(Date.now()).toString()}\n`);
 if (statusFlags.full) {
-  console.log(flagsMap);
+  reports.forEach((r, i) => {
+    console.log(`Flag number: ${i}`);
+    const annotation = manager.getAnnotation(r.key);
+    const printedMessage = annotation.printMessage(r);
+    console.log(printedMessage);
+
+    console.log('\n');
+  });
 } else {
   for (const annotation of manager.annotations) {
     console.log(`${annotation.printMessage ? annotation.printMessage : annotation.key}: ${flagsMap[annotation.key]}`);
   }
 }
+
+console.log('===================== END REPORT ===================== ');

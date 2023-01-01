@@ -1,4 +1,4 @@
-// -skip hello
+// -skip bug
 // issue: "www.google.com"
 //notes: notes line 1.
 // line 2.
@@ -30,7 +30,3 @@ describe.skip('text', () => {
 
 //test1()
 
-
-
-
-// randomCall()
