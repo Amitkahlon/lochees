@@ -22,6 +22,7 @@ export interface IReport {
   line: number;
   context: IContext;
   file: string;
+  warning: IWarningDetails;
 }
 
 export type configDefaults = { maxLines: number };
@@ -37,10 +38,26 @@ export interface ICaseSensitive {
   caseSensitive?: boolean;
 }
 
+export interface IWarning {
+  warningLevel?: number;
+  message: string;
+}
+
+export interface IWarningDetails {
+  hasWarning: boolean;
+  warnings: { warningLevel?: number; message: string }[];
+}
+
+export interface IWarningConfig {
+  warning?: (data: { status?: string; metaData: object }) => IWarningDetails;
+  warningAsync?: (data: { status?: string; metaData: object }) => Promise<IWarningDetails>;
+}
+
 export interface IAnnotationConfig {
   key: string;
   /** Accepted meta data */
   metaData?: IMetaDataConfig[];
+  warning?: IWarningConfig;
   printMessage?: printMessageBuilder;
   settings?: {
     acceptStatus?: boolean;
@@ -54,8 +71,6 @@ export interface IMetaDataConfig extends ICaseSensitive {
     maxLines?: number;
   };
 }
-
-
 
 export enum metaDataType {
   multiLine,

@@ -1,7 +1,14 @@
 /// <reference path="./model/interfaces.ts" />
 
-import { IAnnotationsManagerConfig, IAnnotationConfig, IMetaDataConfig, printMessageBuilder, ICaseSensitive, configDefaults } from "./model/interfaces";
-
+import {
+  IAnnotationsManagerConfig,
+  IAnnotationConfig,
+  IMetaDataConfig,
+  printMessageBuilder,
+  ICaseSensitive,
+  configDefaults,
+  IWarningConfig,
+} from './model/interfaces';
 
 export class ConfigManager {
   config: IAnnotationsManagerConfig;
@@ -37,17 +44,22 @@ export class ConfigManager {
   }
 }
 
-class MetaDataBuilder {
+class AnnotationBuilder {
   private annotation: IAnnotationConfig;
   constructor(annotation: IAnnotationConfig) {
     this.annotation = annotation;
     this.annotation.metaData = [];
   }
 
-  addMetaData(metaDataProperties: IMetaDataConfig): MetaDataBuilder {
+  addMetaData(metaDataProperties: IMetaDataConfig): AnnotationBuilder {
     this.annotation.metaData.push(metaDataProperties);
 
     return this;
+  }
+
+  addWarning(warning: IWarningConfig) {
+    this.annotation.warning = warning;
+    return null;
   }
 }
 
@@ -68,26 +80,20 @@ export class configBuilder {
     return this.config;
   }
 
-  // metaDataBuilder?: (builder: MetaDataBuilder) => void
-  // let metaBuilder: MetaDataBuilder;
-  // if (metaDataBuilder) {
-  //   metaBuilder = new MetaDataBuilder();
-  //   metaDataBuilder(metaBuilder);
-  // }
 
   addAnnotation(annotationProperties: {
     key: string;
-    printMessage?: printMessageBuilder, 
+    printMessage?: printMessageBuilder;
     settings?: {
       acceptStatus?: boolean;
     } & ICaseSensitive;
   }) {
     const { key, printMessage, settings } = annotationProperties;
 
-    const newAnnotation = { key, printMessage, settings }
+    const newAnnotation = { key, printMessage, settings };
     this.config.annotations.push(newAnnotation);
 
-    return new MetaDataBuilder(newAnnotation);
+    return new AnnotationBuilder(newAnnotation);
   }
 
   addGlobalMetaData(metaDataProperties: IMetaDataConfig) {

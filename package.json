@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@octokit/core": "^4.1.0",
     "awesome-typescript-loader": "^5.2.1",
     "chai": "^4.3.7",
     "mocha": "^10.2.0",

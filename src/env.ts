@@ -2,6 +2,7 @@ export class EnvManger {
   public flags: {
     full: boolean;
     output: string;
+    
   };
 
   private argv: string[];
