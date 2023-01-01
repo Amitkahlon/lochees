@@ -1,8 +1,9 @@
-
+import { configBuilder } from './configManager';
+import { DEFAULT_META_DATA } from './model/defaultSettings';
 import StrUtils from './StrUtils';
 const strUtils = new StrUtils();
 
-export const handler = (b) => {
+export const handler = (b: configBuilder) => {
   b.addAnnotation({
     key: '-skip',
     printMessage: ({ metaData, status, file, context, key, line }) => {
@@ -68,4 +69,4 @@ export const handler = (b) => {
   });
 
   b.addGlobalMetaData(DEFAULT_META_DATA.notes).addGlobalMetaData(DEFAULT_META_DATA.todo);
-});
+};

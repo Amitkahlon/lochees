@@ -51,7 +51,7 @@ class MetaDataBuilder {
   }
 }
 
-class configBuilder {
+export class configBuilder {
   private readonly MAX_LINES = 3;
   private config: IAnnotationsManagerConfig = { annotations: [], defaults: { maxLines: this.MAX_LINES } };
   private globalMetaData: IMetaDataConfig[] = [];
