@@ -7,3 +7,8 @@ export const DEFAULT_META_DATA: { issue: IMetaDataConfig; notes: IMetaDataConfig
   notes: { key: 'notes:', settings: { type: metaDataType.multiLine, maxLines: 3 } },
   todo: { key: 'todo:', settings: { type: metaDataType.multiLine, maxLines: 2 } },
 };
+
+export type skip_status = 
+  "bug" | "bug - missing issue" | "wip" | "broken" | "deprecated"
+
+  

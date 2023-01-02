@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { ConfigManager } from './configManager';
 import FileReader from './FileReader';
 import { IAnnotationConfig, IMetaDataConfig, contextType } from './model/interfaces';
@@ -97,7 +98,14 @@ export const isItLine = (line) => {
   return regex.test(line);
 };
 
-export const attemptToGetContextType = () => {};
+export const removeGithubBase = (githubIssueUrl: string) => {
+  const BASE_GITHUB = 'https://github.com/';
+  return githubIssueUrl.replace(BASE_GITHUB, '').replace('"', "");
+};
+
+export const getFromNow = (date: string) => {
+    return moment(new Date(date).valueOf()).fromNow(); 
+}
 
 export const attemptToGetContext = (lines: string[]): { name: string; type: contextType; foundIndex: number } => {
   let whiteSpaceCount = 0;

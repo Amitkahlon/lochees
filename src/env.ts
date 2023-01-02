@@ -2,14 +2,14 @@ export class EnvManger {
   public flags: {
     full: boolean;
     output: string;
-    
+    fullError: boolean;
   };
 
   private argv: string[];
 
   constructor(argv: string[]) {
     this.argv = argv;
-    this.flags = { full: false, output: 'console' };
+    this.flags = { full: false, output: 'console', fullError: false };
     this.setFlags();
   }
 

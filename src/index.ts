@@ -4,22 +4,23 @@ import FileReader from './FileReader';
 import { attemptToGetContext, getAnnotation, getMetaData, isCommentLine, isEndOfMultiLine } from './logic';
 import { ConfigManager } from './configManager';
 import { IReport, IMetaDataConfig, metaDataType } from './model/interfaces';
-import { handler } from './handler';
+import { cypressHandler } from './handler';
 import { overrideLog } from './logHelper';
 import { EnvManger } from './env';
 import { ReportManager } from './reportManager';
 import StrUtils from './StrUtils';
 const strUtils = new StrUtils();
 
+export const envManager = new EnvManger(process.argv);
+envManager.flags.full = true;
+envManager.flags.output = '/debug.log';
+
 (async () => {
-  const manager = new ConfigManager(handler);
-  const envManager = new EnvManger(process.argv);
-  // envManager.flags.full = true;
-  // envManager.flags.output = '/debug.log';
+  const manager = new ConfigManager(cypressHandler);
 
   const reportManager = new ReportManager(envManager.flags.full);
 
-  const stack = ['./test/examples/a'];
+  const stack = ['./test/examples/b'];
 
   const reports: Partial<IReport>[] = [];
 

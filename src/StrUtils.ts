@@ -23,4 +23,9 @@ export default class StrUtils {
     }
     return false;
   }
+
+  formatObject(obj: object) {
+    return JSON.stringify(obj, null, 2);
+  }
+
 }
