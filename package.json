@@ -1,14 +1,20 @@
 {
-  "name": "project-status",
+  "name": "lochees",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Helps you keep track of your project",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "mocha --reporter spec"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Amit Kahlon",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "@octokit/core": "^4.1.0",
     "awesome-typescript-loader": "^5.2.1",
@@ -21,5 +27,17 @@
     "ts-loader": "^9.4.2",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Amitkahlon/lochees.git"
+  },
+  "prepare": "npm run build",
+  "keywords": [
+    "project management",
+    "management",
+    "keep track",
+    "test-management",
+    "cypress-tests-management"
+  ]
 }
