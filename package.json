@@ -4,6 +4,9 @@
   "description": "Helps you keep track of your project",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "lochees": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "mocha --reporter spec"
