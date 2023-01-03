@@ -1,6 +1,6 @@
 {
   "name": "lochees",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Helps you keep track of your project",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
