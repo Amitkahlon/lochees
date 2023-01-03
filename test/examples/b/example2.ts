@@ -75,8 +75,8 @@ describe('Ui and empty State', () => {
         cy.wait(1000);
       });
 
-      //TODO: Add bug
       // -Skip: WIP
+      //TODO: Add bug
       it.skip('should navigate by url', function () {
         cy.visit(usePageObject(PeopleView).route);
 

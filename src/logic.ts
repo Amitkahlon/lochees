@@ -42,12 +42,29 @@ export const getAnnotation = (fileReader: FileReader, manager: ConfigManager) =>
 
 export const getMetaData = (fileReader: FileReader, annotation: IAnnotationConfig): IMetaDataConfig => {
   const firstWord = strUtils.trimCommentSign(fileReader.currentWord);
-  const first = annotation.metaData.find((m) => m.key === firstWord);
-  if (first) return first;
+  if (firstWord) {
+    const first = annotation.metaData.find((m) => {
+      if (!m.caseSensitive) {
+        return firstWord.toLowerCase().includes(m.key.toLowerCase());
+      } else {
+        return firstWord.includes(m.key);
+      }
+    });
+    if (first) return first;
+  }
 
   fileReader.nextWord();
-  const second = annotation.metaData.find((m) => m.key === fileReader.currentWord);
-  if (second) return second;
+  if (fileReader.currentWord) {
+    const second = annotation.metaData.find((m) => {
+      if (!m.caseSensitive) {
+        return fileReader.currentWord.toLowerCase().includes(m.key.toLowerCase());
+      } else {
+        return fileReader.currentWord.includes(m.key);
+      }
+    });
+
+    if (second) return second;
+  }
 
   return null;
 };
@@ -100,12 +117,12 @@ export const isItLine = (line) => {
 
 export const removeGithubBase = (githubIssueUrl: string) => {
   const BASE_GITHUB = 'https://github.com/';
-  return githubIssueUrl.replace(BASE_GITHUB, '').replace('"', "");
+  return githubIssueUrl.replace(BASE_GITHUB, '').replace('"', '');
 };
 
 export const getFromNow = (date: string) => {
-    return moment(new Date(date).valueOf()).fromNow(); 
-}
+  return moment(new Date(date).valueOf()).fromNow();
+};
 
 export const attemptToGetContext = (lines: string[]): { name: string; type: contextType; foundIndex: number } => {
   let whiteSpaceCount = 0;

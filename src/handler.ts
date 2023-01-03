@@ -19,7 +19,7 @@ export const cypressHandler = (b: configBuilder) => {
 
 export const githubIssueHandler = async (issue: string, warning: IWarning[]) => {
   if (issue) {
-    const octokit = new Octokit();
+    const octokit = new Octokit({ auth: envManager.flags.github_access_token });
 
     const params = removeGithubBase(issue);
 
@@ -42,24 +42,19 @@ export const githubIssueHandler = async (issue: string, warning: IWarning[]) => 
         });
       }
     } catch (error) {
-      if (envManager.flags.fullError) {
-        warning.push({
-          warningLevel: 1,
-          message:
-            `Warning! The Associated Issue to this skip is unavailable\n` +
-            `\tIssue: ${issue}\n` +
-            `Error: \n${JSON.stringify(error, null, 4)}\n`,
-        });
+      let err = `Warning! The Associated Issue to this skip is unavailable\n` + `\tIssue: ${issue}\n`;
+
+      if (envManager.flags.full_error) {
+        err += `Error: \n${JSON.stringify(error, null, 4)}\n`;
       } else {
-        warning.push({
-          warningLevel: 1,
-          message:
-            `Warning! The Associated Issue to this skip is unavailable\n` +
-            `\tIssue: ${issue}\n` +
-            `Error: \n${JSON.stringify(error.data, null, 4)}\n` +
-            `To see full error use the --errors=full flag`,
-        });
+        err += `Error: \n${JSON.stringify(error.data, null, 4)}\n` + `To see full error use the --error-full flag\n`;
       }
+
+      if(!envManager.flags.github_access_token){
+        err += `If your issues needs authentication make sure you add github access token 'github-auth {your token}'`
+      }
+
+      warning.push({ warningLevel: 1, message: err });
     }
   }
 };
@@ -183,7 +178,7 @@ export const metaDataHandler = (metaData: object, sb: StringBuilder) => {
   }
 };
 
-export const fileHandler = (fileDetails: { file: string; line: number; status: string, key: string }, sb: StringBuilder) => {
+export const fileHandler = (fileDetails: { file: string; line: number; status: string; key: string }, sb: StringBuilder) => {
   const { file, line, status, key } = fileDetails;
   sb.addLine(`File: ${file} line: ${line}\n` + `Key: ${key}\n` + `Status: ${status}\n`);
 };

@@ -5,15 +5,13 @@ import { attemptToGetContext, getAnnotation, getMetaData, isCommentLine, isEndOf
 import { ConfigManager } from './configManager';
 import { IReport, IMetaDataConfig, metaDataType } from './model/interfaces';
 import { cypressHandler } from './handler';
-import { overrideLog } from './logHelper';
+import { actualLog as logToConsole, overrideLog } from './logHelper';
 import { EnvManger } from './env';
 import { ReportManager } from './reportManager';
 import StrUtils from './StrUtils';
 const strUtils = new StrUtils();
 
 export const envManager = new EnvManger(process.argv);
-envManager.flags.full = true;
-envManager.flags.output = '/debug.log';
 
 (async () => {
   const manager = new ConfigManager(cypressHandler);
@@ -26,7 +24,7 @@ envManager.flags.output = '/debug.log';
 
   while (stack.length > 0) {
     const currentDir = stack.pop();
-    console.log(`Reading folder: ${currentDir}`);
+    console.log(`Reading folder: ${currentDir}.......`);
 
     const files = fs.readdirSync(currentDir);
     for (const file of files) {
@@ -36,11 +34,10 @@ envManager.flags.output = '/debug.log';
       if (fileStat.isDirectory()) {
         stack.push(filePath);
       } else {
-        console.log(`File: ${filePath}`);
+        console.log(`\tFile: ${filePath}`);
         const fileReader = new FileReader(filePath);
 
         while (!fileReader.isEndOfFile()) {
-          console.log(fileReader.currentLineRaw);
           if (!isCommentLine(fileReader.currentLineRaw)) {
             fileReader.nextLine();
             continue;
@@ -157,6 +154,7 @@ envManager.flags.output = '/debug.log';
       if (r.warning && r.warning.hasWarning) {
         r.warning.warnings.forEach((currentWarning) => {
           let separator = '*';
+          let warningTitle = '';
 
           const lengths = strUtils.splitToLines(currentWarning.message).map((a) => a.length);
           const longestLength = Math.max(...lengths);
@@ -164,6 +162,17 @@ envManager.flags.output = '/debug.log';
           for (let i = 0; i < longestLength; i++) {
             separator += '*';
           }
+
+          for (let i = 0; i < (longestLength - "~~~ Warning ~~~".length) / 2; i++) {
+            warningTitle += ' ';
+          }
+
+
+          warningTitle += "~~~ Warning ~~~";
+          console.log(separator);
+
+          console.log(warningTitle)
+
 
           console.log(separator);
           console.log(currentWarning.message);
@@ -180,4 +189,8 @@ envManager.flags.output = '/debug.log';
   }
 
   console.log('===================== END REPORT ===================== ');
+
+  if (envManager.flags.output !== 'console') {
+    logToConsole(`Report Finished!\n check your report at ${envManager.flags.output}`)
+  }
 })();

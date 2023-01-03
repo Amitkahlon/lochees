@@ -35,7 +35,7 @@ export class ConfigManager {
       let curr = a.settings.caseSensitive ? a.key : a.key.toLowerCase();
       let expected = a.settings.caseSensitive ? key : key.toLowerCase();
 
-      return curr === expected;
+      return curr === expected || curr + ":" === expected;
     });
   }
 
