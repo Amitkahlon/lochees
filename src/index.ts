@@ -5,17 +5,17 @@ import { attemptToGetContext, getAnnotation, getMetaData, isCommentLine, isEndOf
 import { ConfigManager } from './configManager';
 import { IReport, IMetaDataConfig, metaDataType } from './model/interfaces';
 import { cypressHandler } from './handler';
-import { actualLog as logToConsole, overrideLog } from './logHelper';
+import { actualLog as logToConsole, logWarning, overrideLog } from './logHelper'; 
 import { EnvManger } from './env';
 import { ReportManager } from './reportManager';
 import StrUtils from './StrUtils';
 const strUtils = new StrUtils();
 
 export const envManager = new EnvManger(process.argv);
-envManager.flags.full = true;
+envManager.flags.full = false;
 envManager.flags.github_access_token = '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';
 envManager.flags.output = '/debug.log';
-
+envManager.flags.only_warnings = true;
 
 (async () => {
   const manager = new ConfigManager(cypressHandler);
@@ -54,7 +54,7 @@ envManager.flags.output = '/debug.log';
             continue;
           }
 
-          if (envManager.flags.full) {
+          if (envManager.flags.full || envManager.flags.only_warnings) {
             let report: Partial<IReport> = {};
             report.metaData = {};
             report.context = {};
@@ -157,35 +157,27 @@ envManager.flags.output = '/debug.log';
 
       if (r.warning && r.warning.hasWarning) {
         r.warning.warnings.forEach((currentWarning) => {
-          let separator = '*';
-          let warningTitle = '';
-
-          const lengths = strUtils.splitToLines(currentWarning.message).map((a) => a.length);
-          const longestLength = Math.max(...lengths);
-
-          for (let i = 0; i < longestLength; i++) {
-            separator += '*';
-          }
-
-          for (let i = 0; i < (longestLength - "~~~ Warning ~~~".length) / 2; i++) {
-            warningTitle += ' ';
-          }
-
-
-          warningTitle += "~~~ Warning ~~~";
-          console.log(separator);
-
-          console.log(warningTitle)
-
-
-          console.log(separator);
-          console.log(currentWarning.message);
-          console.log(separator);
+          logWarning(currentWarning.message);
         });
       }
 
       console.log('\n');
     });
+  } else if (envManager.flags.only_warnings) {
+    reports
+      .filter((r) => r.warning?.hasWarning)
+      .forEach((r, i) => {
+        console.log(`Flag number: ${i}`);
+        const annotation = manager.getAnnotation(r.key);
+        const printedMessage = annotation.printMessage(r);
+        console.log(printedMessage);
+
+        r.warning.warnings.forEach((currentWarning) => {
+          logWarning(currentWarning.message);
+        });
+
+        console.log('\n');
+      });
   } else {
     for (const annotation of manager.annotations) {
       console.log(`${annotation.printMessage ? annotation.printMessage : annotation.key}: ${reportManager.simpleReport[annotation.key]}`);
@@ -195,6 +187,6 @@ envManager.flags.output = '/debug.log';
   console.log('===================== END REPORT ===================== ');
 
   if (envManager.flags.output !== 'console') {
-    logToConsole(`Report Finished!\n check your report at ${envManager.flags.output}`)
+    logToConsole(`Report Finished!\n check your report at ${envManager.flags.output}`);
   }
 })();

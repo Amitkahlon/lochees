@@ -4,13 +4,14 @@ export class EnvManger {
     output: string;
     full_error: boolean;
     github_access_token?: string;
+    only_warnings: boolean
   };
 
   private argv: string[];
 
   constructor(argv: string[]) {
     this.argv = argv;
-    this.flags = { full: false, output: 'console', full_error: false };
+    this.flags = { full: false, output: 'console', full_error: false, only_warnings: false };
     this.setFlags();
   }
 
@@ -19,11 +20,16 @@ export class EnvManger {
     this.handleOutput();
     this.handleGithubAuth();
     this.fullErrorFlag();
+    this.handleOnlyWarning();
+
   }
-  fullErrorFlag() {
+  private handleOnlyWarning() {
+    this.flags.only_warnings = this.argv.includes('--only-warnings');
+  }
+  private fullErrorFlag() {
     this.flags.full_error = this.argv.includes('--full-error');
   }
-  handleGithubAuth() {
+  private handleGithubAuth() {
     for (let i = 0; i < this.argv.length; i++) {
       const arg = this.argv[i];
 

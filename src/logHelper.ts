@@ -1,7 +1,10 @@
 import * as fs from 'fs';
 import * as util from 'util';
+import StrUtils from './StrUtils';
 
 let original;
+
+const strUtils = new StrUtils();
 
 export const overrideLog = (filePath: string = '/debug.log') => {
   var log_file = fs.createWriteStream(__dirname + filePath, { flags: 'w' });
@@ -16,10 +19,34 @@ export const overrideLog = (filePath: string = '/debug.log') => {
 };
 
 export const actualLog = (text: string) => {
-  if(original) {
+  if (original) {
     original(text);
+  } else {
+    console.log(text);
   }
-  else {
-    console.log(text)
+};
+
+export const logWarning = (warningMessage: string) => {
+  let separator = '*';
+  let warningTitle = '';
+
+  const lengths = strUtils.splitToLines(warningMessage).map((a) => a.length);
+  const longestLength = Math.max(...lengths);
+
+  for (let i = 0; i < longestLength; i++) {
+    separator += '*';
   }
-}
+
+  for (let i = 0; i < (longestLength - '~~~ Warning ~~~'.length) / 2; i++) {
+    warningTitle += ' ';
+  }
+
+  warningTitle += '~~~ Warning ~~~';
+  console.log(separator);
+
+  console.log(warningTitle);
+
+  console.log(separator);
+  console.log(warningMessage);
+  console.log(separator);
+};
