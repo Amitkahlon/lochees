@@ -12,13 +12,17 @@ import StrUtils from './StrUtils';
 const strUtils = new StrUtils();
 
 export const envManager = new EnvManger(process.argv);
+envManager.flags.full = true;
+envManager.flags.github_access_token = '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';
+envManager.flags.output = '/debug.log';
+
 
 (async () => {
   const manager = new ConfigManager(cypressHandler);
 
   const reportManager = new ReportManager(envManager.flags.full);
 
-  const stack = ['./test/examples/b'];
+  const stack = ['C:/Users/AmitKahlon/Desktop/Workplace/unleash-client/unleash-client/testim/cypress/e2e'];
 
   const reports: Partial<IReport>[] = [];
 

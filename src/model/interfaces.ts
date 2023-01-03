@@ -7,6 +7,10 @@ export type contextType =
   | 'skipped_describe'
   | 'commented_function_call'
   | 'function_call'
+  | 'afterEach'
+  | 'beforeEach'
+  | 'before'
+  | 'after'
   | 'no_context';
 
 export interface IContext {

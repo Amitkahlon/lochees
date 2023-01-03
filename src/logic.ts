@@ -110,6 +110,24 @@ export const isDescribeLine = (line) => {
   return regex.test(line);
 };
 
+export const getHook = (line): contextType => {
+  const beforeEachRegex = /beforeEach\([`'"](.+)[`'"]/;
+  const afterEachRegex = /afterEach\([`'"](.+)[`'"]/;
+  const beforeRegex = /before\([`'"](.+)[`'"]/;
+  const afterRegex = /after\([`'"](.+)[`'"]/;
+
+  const hooks: { type: contextType; regex: RegExp }[] = [
+    { type: 'afterEach', regex: afterEachRegex },
+    { type: 'beforeEach', regex: beforeEachRegex },
+    { type: 'before', regex: beforeRegex },
+    { type: 'after', regex: afterRegex },
+  ]; //the order matters
+
+  return hooks.find((h) => {
+    return h.regex.test(line);
+  })?.type;
+};
+
 export const isItLine = (line) => {
   const regex = /it\([`'"](.+)[`'"]/;
   return regex.test(line);
@@ -137,7 +155,7 @@ export const attemptToGetContext = (lines: string[]): { name: string; type: cont
       }
     }
 
-    let name: string;
+    let name: string, type: contextType;
     if ((name = getSkippedDescribe(l))) {
       return { name, type: 'skipped_describe', foundIndex: i };
     } else if ((name = getSkippedIt(l))) {
@@ -146,12 +164,14 @@ export const attemptToGetContext = (lines: string[]): { name: string; type: cont
       return { name: getDescribeName(l), type: 'describe', foundIndex: i };
     } else if (isItLine(l)) {
       return { name: getItName(l), type: 'it', foundIndex: i };
+    } else if ((type = getHook(l))) {
+      return { name: l, type, foundIndex: i };
     } else if (isFunctionCall(l)) {
-      const { name, params } = getFunctionCallName(l); //TODO: use the params
+      const { functionName, params } = getFunctionCallName(l) || {}; //TODO: do something with the params
       if (isCommentLine(l)) {
-        return { name, type: 'commented_function_call', foundIndex: i };
+        return { name: functionName, type: 'commented_function_call', foundIndex: i };
       } else {
-        return { foundIndex: i, name, type: 'function_call' };
+        return { foundIndex: i, name: functionName, type: 'function_call' };
       }
     }
   }
@@ -164,15 +184,25 @@ export const isFunctionCall = (line: string) => {
   return regex.test(line);
 };
 
-export const getFunctionCallName = (l): { name: string; params: string } => {
+export const getFunctionCallName = (l): { functionName: string; params: string } => {
+  const regexNoClosingBrackets = /^[^\)]*\([^\)]*$/;
+  let match = l.match(regexNoClosingBrackets);
+
+  if (match) {
+    return { functionName: match[0], params: null };
+  }
+
   const regex = /([^\s\/]+)\((.+)?\)/;
-  const match = l.match(regex);
+  match = l.match(regex);
 
   if (match) {
     const name = match[1];
     const params = match[2];
-    return { name, params };
+
+    return { functionName: name, params };
   }
+
+  return null;
 };
 
 const getSkippedDescribe = (line: string): string | null => {
