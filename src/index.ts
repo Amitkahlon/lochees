@@ -8,21 +8,15 @@ import { cypressHandler } from './handler';
 import { actualLog as logToConsole, logWarning, overrideLog } from './logHelper'; 
 import { EnvManger } from './env';
 import { ReportManager } from './reportManager';
-import StrUtils from './StrUtils';
-const strUtils = new StrUtils();
 
-export const envManager = new EnvManger(process.argv);
-envManager.flags.full = false;
-envManager.flags.github_access_token = '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';
-envManager.flags.output = '/debug.log';
-envManager.flags.only_warnings = true;
+export const envManager = new EnvManger(process.argv.slice(2));
 
 (async () => {
   const manager = new ConfigManager(cypressHandler);
 
   const reportManager = new ReportManager(envManager.flags.full);
 
-  const stack = ['C:/Users/AmitKahlon/Desktop/Workplace/unleash-client/unleash-client/testim/cypress/e2e'];
+  const stack = [envManager.flags.scanDirectory];
 
   const reports: Partial<IReport>[] = [];
 
@@ -81,7 +75,11 @@ envManager.flags.only_warnings = true;
                   currentMeta = getMetaData(fileReader, annotation);
 
                   if (currentMeta) {
-                    report.metaData[currentMeta.key] = fileReader.getRestOfLine(fileReader.currentWordIndex + 1);
+                    if(!report.metaData[currentMeta.key]) {
+                      report.metaData[currentMeta.key] = ''
+                    }
+
+                    report.metaData[currentMeta.key] +=  "\n" + fileReader.getRestOfLine(fileReader.currentWordIndex + 1);
                   } else {
                     fileReader.prevLine();
                     break;

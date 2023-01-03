@@ -32,7 +32,7 @@ export const githubIssueHandler = async (issue: string, warning: IWarning[]) => 
         warning.push({
           warningLevel: 1,
           message:
-            `Warning! The Associated Issue to this skip is closed! check if you can un-skip it!\n` +
+            `The Associated Issue to this skip is closed! check if you can un-skip it!\n` +
             `\tIssue: ${issue}\n` +
             `\tWas Closed: ${closed_at} ${getFromNow(closed_at)}\n` +
             `\tTitle: ${title}\n` +
@@ -50,8 +50,8 @@ export const githubIssueHandler = async (issue: string, warning: IWarning[]) => 
         err += `Error: \n${JSON.stringify(error.data, null, 4)}\n` + `To see full error use the --error-full flag\n`;
       }
 
-      if(!envManager.flags.github_access_token){
-        err += `If your issues needs authentication make sure you add github access token 'github-auth {your token}'`
+      if (!envManager.flags.github_access_token) {
+        err += `If your issues needs authentication make sure you add github access token 'github-auth {your token}'`;
       }
 
       warning.push({ warningLevel: 1, message: err });
@@ -78,7 +78,7 @@ export const skipAnnotationHandler = (b: configBuilder) => {
         if (status === 'bug - no open issue') {
           w.push({
             warningLevel: 1,
-            message: 'Warning! You did not open issue for this skip! make sure you do so',
+            message: 'There is no issue open for this skip',
           });
         }
 

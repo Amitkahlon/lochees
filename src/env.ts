@@ -1,27 +1,39 @@
+import * as fs from 'fs';
+
 export class EnvManger {
   public flags: {
     full: boolean;
     output: string;
     full_error: boolean;
     github_access_token?: string;
-    only_warnings: boolean
+    only_warnings: boolean;
+    scanDirectory: string;
   };
 
   private argv: string[];
 
   constructor(argv: string[]) {
     this.argv = argv;
-    this.flags = { full: false, output: 'console', full_error: false, only_warnings: false };
+    this.flags = { full: false, output: 'console', full_error: false, only_warnings: false, scanDirectory: null };
     this.setFlags();
   }
 
   private setFlags() {
+    this.handleScanFiles();
     this.handleFullFlag();
     this.handleOutput();
     this.handleGithubAuth();
     this.fullErrorFlag();
     this.handleOnlyWarning();
+  }
 
+  handleScanFiles() {
+    const path = this.argv[0];
+    if (!fs.existsSync(path) || !fs.lstatSync(this.argv[0]).isDirectory) {
+      throw 'please provide a path for the directory you want to scan';
+    }
+
+    this.flags.scanDirectory = path;
   }
   private handleOnlyWarning() {
     this.flags.only_warnings = this.argv.includes('--only-warnings');
