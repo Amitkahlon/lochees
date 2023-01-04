@@ -43,7 +43,7 @@ export const githubIssueHandler = async (issue: string, warning: IWarning[]) => 
         });
       }
     } catch (error) {
-      let err = `Warning! The Associated Issue to this skip is unavailable\n` + `\tIssue: ${issue}\n`;
+      let err = `The Associated Issue to this skip is unavailable\n` + `Issue: ${issue.replace("\n", "")}\n`;
 
       if (envManager.flags.full_error) {
         err += `Error: \n${JSON.stringify(error, null, 4)}\n`;
