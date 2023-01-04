@@ -17,7 +17,7 @@ export class StringBuilder {
     this.str += line;
   }
 
-  public toString() {
+  public getString() {
     return this.str;
   }
 }

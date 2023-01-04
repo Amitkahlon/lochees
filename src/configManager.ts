@@ -13,7 +13,14 @@ import {
 export class ConfigManager {
   config: IAnnotationsManagerConfig;
 
-  constructor(builder: (configBuilder: configBuilder) => void) {
+  private static _instance: ConfigManager;
+  public static get Instance() {
+    return this._instance || (this._instance = new this());
+  }
+
+  private constructor() {}
+
+  public build(builder: (configBuilder: configBuilder) => void) {
     const cb = new configBuilder();
     builder(cb);
 

@@ -7,7 +7,7 @@ let original;
 const strUtils = new StrUtils();
 
 export const overrideLog = (filePath: string = '/debug.log') => {
-  var log_file = fs.createWriteStream(__dirname + filePath, { flags: 'w' });
+  var log_file = fs.createWriteStream(process.cwd() + filePath, { flags: 'w' });
   var log_stdout = process.stdout;
 
   original = console.log;

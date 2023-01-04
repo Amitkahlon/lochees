@@ -5,20 +5,17 @@ import { attemptToGetContext, getAnnotation, getMetaData, isCommentLine, isEndOf
 import { ConfigManager } from './configManager';
 import { IReport, IMetaDataConfig, metaDataType } from './model/interfaces';
 import { cypressHandler } from './handler';
-import { actualLog as logToConsole, logWarning, overrideLog } from './logHelper'; 
 import { EnvManger } from './env';
 import { ReportManager } from './reportManager';
+import { generateReport } from './generateReport';
 
-export const envManager = new EnvManger(process.argv.slice(2));
-
-(async () => {
-  const manager = new ConfigManager(cypressHandler);
+export const lochees = async () => {
+  const envManager = EnvManger.Instance;
+  const config = ConfigManager.Instance;
+  config.build(cypressHandler);
 
   const reportManager = new ReportManager(envManager.flags.full);
-
   const stack = [envManager.flags.scanDirectory];
-
-  const reports: Partial<IReport>[] = [];
 
   while (stack.length > 0) {
     const currentDir = stack.pop();
@@ -41,15 +38,15 @@ export const envManager = new EnvManger(process.argv.slice(2));
             continue;
           }
 
-          const annotation = getAnnotation(fileReader, manager);
+          const annotation = getAnnotation(fileReader, config);
 
           if (!annotation) {
             fileReader.nextLine();
             continue;
           }
 
-          if (envManager.flags.full || envManager.flags.only_warnings) {
-            let report: Partial<IReport> = {};
+          if (envManager.flags.full) {
+            let report: IReport = {};
             report.metaData = {};
             report.context = {};
 
@@ -75,11 +72,11 @@ export const envManager = new EnvManger(process.argv.slice(2));
                   currentMeta = getMetaData(fileReader, annotation);
 
                   if (currentMeta) {
-                    if(!report.metaData[currentMeta.key]) {
-                      report.metaData[currentMeta.key] = ''
+                    if (!report.metaData[currentMeta.key]) {
+                      report.metaData[currentMeta.key] = '';
                     }
 
-                    report.metaData[currentMeta.key] +=  "\n" + fileReader.getRestOfLine(fileReader.currentWordIndex + 1);
+                    report.metaData[currentMeta.key] += '\n' + fileReader.getRestOfLine(fileReader.currentWordIndex + 1);
                   } else {
                     fileReader.prevLine();
                     break;
@@ -92,7 +89,7 @@ export const envManager = new EnvManger(process.argv.slice(2));
 
                   fileReader.nextLine();
                 } else {
-                  const isEnd = isEndOfMultiLine(fileReader, annotation, manager, multiLineCount, currentMeta.settings.maxLines);
+                  const isEnd = isEndOfMultiLine(fileReader, annotation, config, multiLineCount, currentMeta.settings.maxLines);
 
                   if (isEnd) {
                     multiLineFlag = false;
@@ -124,14 +121,11 @@ export const envManager = new EnvManger(process.argv.slice(2));
               }
             }
 
-            reports.push(report);
+            reportManager.fullReport.push(report);
           } else {
-            const { simpleReport } = reportManager;
-            if (simpleReport[annotation.key] == null) {
-              simpleReport[annotation.key] = 1;
-            } else {
-              simpleReport[annotation.key]++;
-            }
+            //TODO: Handle short report.
+            console.log('Short report is currently unavailable');
+            return;
           }
 
           fileReader.nextLine();
@@ -140,51 +134,5 @@ export const envManager = new EnvManger(process.argv.slice(2));
     }
   }
 
-  if (envManager.flags.output !== 'console') {
-    overrideLog();
-  }
-
-  console.log('===================== Report ===================== \n');
-  console.log(`Date: ${new Date(Date.now()).toString()}\n`);
-  if (envManager.flags.full) {
-    reports.forEach((r, i) => {
-      console.log(`Flag number: ${i}`);
-      const annotation = manager.getAnnotation(r.key);
-      const printedMessage = annotation.printMessage(r);
-      console.log(printedMessage);
-
-      if (r.warning && r.warning.hasWarning) {
-        r.warning.warnings.forEach((currentWarning) => {
-          logWarning(currentWarning.message);
-        });
-      }
-
-      console.log('\n');
-    });
-  } else if (envManager.flags.only_warnings) {
-    reports
-      .filter((r) => r.warning?.hasWarning)
-      .forEach((r, i) => {
-        console.log(`Flag number: ${i}`);
-        const annotation = manager.getAnnotation(r.key);
-        const printedMessage = annotation.printMessage(r);
-        console.log(printedMessage);
-
-        r.warning.warnings.forEach((currentWarning) => {
-          logWarning(currentWarning.message);
-        });
-
-        console.log('\n');
-      });
-  } else {
-    for (const annotation of manager.annotations) {
-      console.log(`${annotation.printMessage ? annotation.printMessage : annotation.key}: ${reportManager.simpleReport[annotation.key]}`);
-    }
-  }
-
-  console.log('===================== END REPORT ===================== ');
-
-  if (envManager.flags.output !== 'console') {
-    logToConsole(`Report Finished!\n check your report at ${envManager.flags.output}`);
-  }
-})();
+  generateReport(reportManager.fullReport);
+};

@@ -20,13 +20,13 @@ export interface IContext {
 }
 
 export interface IReport {
-  key: string;
-  status: string;
-  metaData: object;
-  line: number;
-  context: IContext;
-  file: string;
-  warning: IWarningDetails;
+  key?: string;
+  status?: string;
+  metaData?: object;
+  line?: number;
+  context?: IContext;
+  file?: string;
+  warning?: IWarningDetails;
 }
 
 export type configDefaults = { maxLines: number };

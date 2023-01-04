@@ -1,5 +1,8 @@
 import * as fs from 'fs';
 
+/**
+ * Singleton class
+ */
 export class EnvManger {
   public flags: {
     full: boolean;
@@ -12,10 +15,16 @@ export class EnvManger {
 
   private argv: string[];
 
-  constructor(argv: string[]) {
-    this.argv = argv;
+  private static _instance: EnvManger;
+
+  private constructor() {
+    this.argv = process.argv.slice(2);
     this.flags = { full: false, output: 'console', full_error: false, only_warnings: false, scanDirectory: null };
     this.setFlags();
+  }
+
+  public static get Instance() {
+    return this._instance || (this._instance = new this());
   }
 
   private setFlags() {
@@ -45,7 +54,7 @@ export class EnvManger {
     for (let i = 0; i < this.argv.length; i++) {
       const arg = this.argv[i];
 
-      if (arg.includes('--github-auth') || arg.includes('-gha')) {
+      if (arg === '--github-auth' || arg === '-gha') {
         const github_access_token = this.argv[i + 1];
         if (!github_access_token || github_access_token.length < 5) {
           console.error('valid github access token was not provided, please provide a valid github access token');
@@ -61,7 +70,7 @@ export class EnvManger {
     for (let i = 0; i < this.argv.length; i++) {
       const arg = this.argv[i];
 
-      if (arg.includes('-o') || arg.includes('--output')) {
+      if (arg === '-o' || arg === '--output') {
         const output = this.argv[i + 1];
         if (!output) {
           console.error('output was not provided, please provide a file path');

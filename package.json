@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "lochees": "dist/index.js"
+    "lochees": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",

@@ -10,4 +10,5 @@ export class ReportManager {
       this.simpleReport = {};
     }
   }
+
 }

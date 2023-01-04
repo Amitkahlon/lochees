@@ -4,9 +4,10 @@ import { Octokit } from '@octokit/core';
 import { IContext, IReport, IWarning, IWarningDetails } from './model/interfaces';
 import StrUtils from './StrUtils';
 import { getFromNow, removeGithubBase } from './logic';
-import { envManager } from '.';
 import { StringBuilder } from './stringBuilder';
+import { EnvManger } from './env';
 const strUtils = new StrUtils();
+const envManager = EnvManger.Instance;
 
 export const cypressHandler = (b: configBuilder) => {
   skipAnnotationHandler(b);
@@ -67,7 +68,7 @@ export const skipAnnotationHandler = (b: configBuilder) => {
       let sb = new StringBuilder();
 
       defaultHandlers(report, sb);
-      return sb.toString();
+      return sb.getString();
     },
     settings: { acceptStatus: true, caseSensitive: false },
   })
@@ -104,7 +105,7 @@ export const plasterAnnotationHandler = (b: configBuilder) => {
       contextHandler(context, sb);
       metaDataHandler(metaData, sb);
 
-      return sb.toString();
+      return sb.getString();
     },
   })
     .addMetaData(DEFAULT_META_DATA.issue)
@@ -132,7 +133,7 @@ export const sensitiveAnnotationHandler = (b: configBuilder) => {
 
       defaultHandlers(report, sb);
 
-      return sb.toString();
+      return sb.getString();
     },
     settings: { acceptStatus: false, caseSensitive: false },
   });
@@ -147,7 +148,7 @@ export const flakyAnnotationHandler = (b: configBuilder) => {
 
       defaultHandlers(report, sb);
 
-      return sb.toString();
+      return sb.getString();
     },
   });
 };
@@ -166,7 +167,10 @@ export const metaDataHandler = (metaData: object, sb: StringBuilder) => {
   sb.addLine(`Meta Data:\n`);
   for (const metaDataKey in metaData) {
     const metaDataDetails = metaData[metaDataKey] as string;
-    sb.addLine(`\t${metaDataKey}:\n`);
+
+    let printedKey = metaDataKey[metaDataKey.length - 1] === ":" ? metaDataKey.slice(0, -1) : metaDataKey
+    
+    sb.addLine(`\t${printedKey}:`);
     sb.addLine(
       '\t\t' +
         strUtils
