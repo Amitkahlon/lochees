@@ -2,7 +2,6 @@
 
 import { lochees } from '.';
 import * as fs from 'fs';
-import * as path from 'path';
 
 //attempt to get config file
 fs.readFile(process.cwd() + '/.lochees', 'utf8', function (err, data) {
@@ -17,6 +16,5 @@ fs.readFile(process.cwd() + '/.lochees', 'utf8', function (err, data) {
     } catch (error) {}
   }
 
-  console.log(process.argv);
-  lochees();
+  lochees(process.argv.slice(2));
 });

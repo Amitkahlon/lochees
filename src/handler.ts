@@ -20,13 +20,20 @@ export const cypressHandler = (b: configBuilder) => {
 
 export const githubIssueHandler = async (issue: string, warning: IWarning[]) => {
   if (issue) {
-    const octokit = new Octokit({ auth: envManager.flags.github_access_token });
+    issue = issue.replace('\n', '');
+
+    let octokit: Octokit;
+    if (envManager.flags.github_access_token) {
+      octokit = new Octokit({ auth: envManager.flags.github_access_token });
+    } else {
+      octokit = new Octokit({});
+    }
+    // let octokit = envManager.flags.github_access_token ? new Octokit({ auth: envManager.flags.github_access_token }) : new Octokit();
 
     const params = removeGithubBase(issue);
 
     try {
       const res = await octokit.request('GET /repos/' + params);
-
       const { title, updated_at, state_reason, state, created_at, closed_at } = res.data;
 
       if (state === 'closed') {
@@ -43,7 +50,7 @@ export const githubIssueHandler = async (issue: string, warning: IWarning[]) => 
         });
       }
     } catch (error) {
-      let err = `The Associated Issue to this skip is unavailable\n` + `Issue: ${issue.replace("\n", "")}\n`;
+      let err = `The Associated Issue to this skip is unavailable\n` + `Issue: ${issue.replace('\n', '')}\n`;
 
       if (envManager.flags.full_error) {
         err += `Error: \n${JSON.stringify(error, null, 4)}\n`;
@@ -168,8 +175,8 @@ export const metaDataHandler = (metaData: object, sb: StringBuilder) => {
   for (const metaDataKey in metaData) {
     const metaDataDetails = metaData[metaDataKey] as string;
 
-    let printedKey = metaDataKey[metaDataKey.length - 1] === ":" ? metaDataKey.slice(0, -1) : metaDataKey
-    
+    let printedKey = metaDataKey[metaDataKey.length - 1] === ':' ? metaDataKey.slice(0, -1) : metaDataKey;
+
     sb.addLine(`\t${printedKey}:`);
     sb.addLine(
       '\t\t' +

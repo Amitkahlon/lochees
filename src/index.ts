@@ -9,8 +9,9 @@ import { EnvManger } from './env';
 import { ReportManager } from './reportManager';
 import { generateReport } from './generateReport';
 
-export const lochees = async () => {
+export const lochees = async (args: string[]) => {
   const envManager = EnvManger.Instance;
+  envManager.build(args);
   const config = ConfigManager.Instance;
   config.build(cypressHandler);
 

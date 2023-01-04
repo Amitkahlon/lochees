@@ -10,12 +10,11 @@
 
 describe.skip('text', () => {
   // -skip bug
-  // issue: "https://github.com/cypress-io/cypress/issues/25284"
+  // issue: "https://github.com/remy/nodemon/issues/2091"
 
   it('it 1', () => {});
 
   // -skip bug
-  // issue: "www.google.com"
 
   it('it 2', () => {});
 });

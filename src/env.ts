@@ -17,14 +17,17 @@ export class EnvManger {
 
   private static _instance: EnvManger;
 
-  private constructor() {
-    this.argv = process.argv.slice(2);
-    this.flags = { full: false, output: 'console', full_error: false, only_warnings: false, scanDirectory: null };
-    this.setFlags();
-  }
+  private constructor() {}
 
   public static get Instance() {
     return this._instance || (this._instance = new this());
+  }
+
+  public build(args: string[]) {
+    
+    this.argv = args;
+    this.flags = { full: false, output: 'console', full_error: false, only_warnings: false, scanDirectory: null };
+    this.setFlags();
   }
 
   private setFlags() {
